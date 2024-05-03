@@ -85,10 +85,15 @@ def classify_nb(training_filename, testing_filename):
             
             # find pdf for each attribute and keep multiply them
             for i, x in enumerate(test_data):
+                print(classed + ": " + str(data[i].data))
+                print("x: " + str(x) + " mean: " + str(data[i].get_mean()) +  " std: " + str(data[i].get_std_dev()))
+                print(str(p_e) + " x " + str(pdf(x, data[i].get_mean(), data[i].get_std_dev())))
                 p_e *= pdf(x, data[i].get_mean(), data[i].get_std_dev())
+                print("= " + str(p_e))
                 
             choice[classed] = p_e
             
+        print(choice)
         # Check if all values in the classifier dictionary are equal and not only had 1 class return "yes"
         if len(set(choice.values())) == 1 and len(choice) != 1:
             result.append("yes")
