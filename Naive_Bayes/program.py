@@ -48,9 +48,11 @@ def classify_nb(training_filename, testing_filename):
     attribute_data: Dict[str, List[AttributeData]] = {}
     testing_data: List[float] = []
     result: List[str] = []
+    p_result: Dict[str, int] = {}
     
     # collect attribute data that will be useful from training file
     with open(training_filename, "r") as f:
+        total_p = 0
         for line in f:
             data = line.split(",")
             classed = data[-1].strip()
@@ -58,6 +60,7 @@ def classify_nb(training_filename, testing_filename):
             # classify the result by create a list of attribute on dict if not exist
             if classed not in attribute_data:
                 attribute_data[classed] = []
+                p_result[classed] = 0
                 
                 # initialise empty attribute data for this classifier
                 for _ in range(len(data[:-1])):
@@ -67,12 +70,21 @@ def classify_nb(training_filename, testing_filename):
             for i, attribute in enumerate(attribute_data[classed]):
                 num = float(data[i])
                 attribute.add_data(num)
-                
+            
+            # count all the data and how many data are yes or no
+            p_result[classed] += 1
+            total_p += 1
+        
+        # find p(yes) and p(no) after collect all training data
+        for classed in p_result:
+            p_result[classed] = p_result.get(classed) / total_p
+                        
     
     # collect testing data in object
     with open(testing_filename, "r") as f:
         for line in f:
             testing_data.append([float(i) for i in line.split(",")])
+            
             
     # for each of testing data, classify the result
     for test_data in testing_data:
@@ -87,7 +99,7 @@ def classify_nb(training_filename, testing_filename):
             for i, x in enumerate(test_data):
                 p_e *= pdf(x, data[i].get_mean(), data[i].get_std_dev())
                 
-            choice[classed] = p_e
+            choice[classed] = p_e * p_result[classed]
             
         # Check if all values in the classifier dictionary are equal and not only had 1 class return "yes"
         if len(set(choice.values())) == 1 and len(choice) != 1:
@@ -97,5 +109,3 @@ def classify_nb(training_filename, testing_filename):
             result.append(max(choice, key=choice.get))
         
     return result
-
-print(classify_nb("train.csv", "test.csv"))
